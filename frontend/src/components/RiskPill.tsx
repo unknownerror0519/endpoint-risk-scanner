@@ -10,10 +10,10 @@ export function riskTone(tier?: string | null): 'neutral' | 'success' | 'warning
 
 export function riskColor(tier?: string | null): string {
   const t = (tier || '').toUpperCase()
-  if (t === 'LOW') return 'text-emerald-600'
-  if (t === 'MODERATE') return 'text-amber-600'
-  if (t === 'HIGH' || t === 'SEVERE' || t === 'CRITICAL') return 'text-red-600'
-  return 'text-gray-400'
+  if (t === 'LOW') return 'text-emerald-600 dark:text-emerald-400'
+  if (t === 'MODERATE') return 'text-amber-600 dark:text-amber-400'
+  if (t === 'HIGH' || t === 'SEVERE' || t === 'CRITICAL') return 'text-red-600 dark:text-red-400'
+  return 'text-gray-400 dark:text-slate-400'
 }
 
 export function RiskPill({ tier, size }: { tier?: string | null; size?: 'sm' | 'md' }) {

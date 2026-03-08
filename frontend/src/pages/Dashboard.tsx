@@ -40,19 +40,19 @@ const ViewIcon = () => (
 )
 
 const MonitorIcon = () => (
-  <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="h-4 w-4 text-gray-400 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
   </svg>
 )
 
 const SearchIcon = () => (
-  <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="h-4 w-4 text-gray-400 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 )
 
 const Th = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <th className={`whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 ${className}`}>{children}</th>
+  <th className={`whitespace-nowrap px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-slate-400 ${className}`}>{children}</th>
 )
 
 export function Dashboard() {
@@ -142,20 +142,20 @@ export function Dashboard() {
       {/* Status summary bar */}
       <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/20">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
             {onlineCount} Online
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/20">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-600/20 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/20">
             <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
             {offlineCount} Offline
           </span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-slate-400">
           <span>Updated {formatTime(lastRefresh)}</span>
           <button
             onClick={() => void load()}
-            className="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             title="Refresh"
           >
             <RefreshIcon />
@@ -174,7 +174,7 @@ export function Dashboard() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by hostname or OS..."
-            className="block w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            className="block w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-indigo-400 dark:focus:ring-indigo-500/20"
           />
         </div>
       </div>
@@ -195,15 +195,15 @@ export function Dashboard() {
 
       {/* Devices table */}
       <Card noPadding>
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-700">
+        <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-700 dark:text-slate-200">
             Devices ({loading ? '…' : filtered.length})
           </h2>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/60">
+              <tr className="border-b border-gray-100 bg-gray-50/60 dark:border-slate-700 dark:bg-slate-800/60">
                 <Th>Status</Th>
                 <Th>Hostname</Th>
                 <Th>Operating System</Th>
@@ -212,12 +212,12 @@ export function Dashboard() {
                 <Th className="text-right">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
               {filtered.map((it) => {
                 const isScanning = it.scan_status === 'scanning'
                 const online = it.is_online === true
                 return (
-                  <tr key={it.endpoint_id} className="transition-colors hover:bg-gray-50/70">
+                  <tr key={it.endpoint_id} className="transition-colors hover:bg-gray-50/70 dark:hover:bg-slate-800/60">
                     {/* Status */}
                     <td className="whitespace-nowrap px-5 py-4">
                       <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${online ? 'text-emerald-600' : 'text-red-500'}`}>
@@ -231,21 +231,21 @@ export function Dashboard() {
                         <MonitorIcon />
                         <div>
                           <Link
-                            className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline"
+                            className="font-semibold text-gray-900 hover:text-indigo-600 hover:underline dark:text-slate-100 dark:hover:text-indigo-300"
                             to={`/endpoints/${encodeURIComponent(it.endpoint_id)}`}
                           >
                             {it.endpoint_name || it.endpoint_id}
                           </Link>
-                          <div className="mt-0.5 font-mono text-[11px] text-gray-400">{it.endpoint_id}</div>
+                          <div className="mt-0.5 font-mono text-[11px] text-gray-400 dark:text-slate-500">{it.endpoint_id}</div>
                         </div>
                       </div>
                     </td>
                     {/* OS */}
-                    <td className="whitespace-nowrap px-5 py-4 text-gray-600">
+                    <td className="whitespace-nowrap px-5 py-4 text-gray-600 dark:text-slate-300">
                       {it.os_name || 'Unknown'}
                     </td>
                     {/* Last Seen */}
-                    <td className="whitespace-nowrap px-5 py-4 text-gray-500">
+                    <td className="whitespace-nowrap px-5 py-4 text-gray-500 dark:text-slate-400">
                       {formatWhen(it.last_seen)}
                     </td>
                     {/* Apps */}

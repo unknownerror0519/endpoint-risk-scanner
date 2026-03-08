@@ -13,14 +13,14 @@ type Props = {
 export function Card({ title, subtitle, right, children, className, noPadding }: Props) {
   return (
     <div className={clsx(
-      'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm',
+      'overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800',
       className
     )}>
       {(title || subtitle || right) && (
-        <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-6 py-4 dark:border-slate-700">
           <div>
-            {title && <h3 className="text-sm font-semibold text-gray-900">{title}</h3>}
-            {subtitle && <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p>}
+            {title && <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100">{title}</h3>}
+            {subtitle && <p className="mt-0.5 text-xs text-gray-500 dark:text-slate-400">{subtitle}</p>}
           </div>
           {right}
         </div>
