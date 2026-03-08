@@ -1,0 +1,83 @@
+{
+  "endpoint_id": "endpoint-sample-001",
+  "captured_at": "2026-03-06T10:00:00Z",
+  "applications": [
+    {
+      "name": "Mozilla Firefox (x64 en-US)",
+      "publisher": "Mozilla",
+      "version": "147.0.4",
+      "install_location": "C:/Program Files/Mozilla Firefox",
+      "install_date": "2026-02-28"
+    },
+    {
+      "name": "Microsoft Edge",
+      "publisher": "Microsoft Corporation",
+      "version": "145.0.3800.82",
+      "install_location": "C:/Program Files (x86)/Microsoft/Edge/Application",
+      "install_date": "2026-03-01"
+    },
+    {
+      "name": "Microsoft Edge WebView2 Runtime",
+      "publisher": "Microsoft Corporation",
+      "version": "145.0.3800.82",
+      "install_location": "C:/Program Files (x86)/Microsoft/EdgeWebView/Application",
+      "install_date": "2026-03-01"
+    },
+    {
+      "name": "Microsoft Visual Studio Code (User)",
+      "publisher": "Microsoft Corporation",
+      "version": "1.97.2",
+      "install_location": "C:/Users/alice/AppData/Local/Programs/Microsoft VS Code",
+      "install_date": "2026-02-15"
+    },
+    {
+      "name": "Burp Suite Community Edition 2023.10.2.3",
+      "publisher": "PortSwigger Web Security",
+      "version": "Unknown",
+      "install_location": "C:/Program Files/BurpSuiteCommunity",
+      "install_date": "2025-11-10"
+    },
+    {
+      "name": "ESET Endpoint Security",
+      "publisher": "ESET, spol. s r.o.",
+      "version": "10.1.2066.0",
+      "install_location": "C:/Program Files/ESET/ESET Security",
+      "install_date": "2026-01-20"
+    },
+    {
+      "name": "ESET Management Agent",
+      "publisher": "ESET, spol. s r.o.",
+      "version": "11.0.1234.0",
+      "install_location": "C:/Program Files/ESET/ERA Agent",
+      "install_date": "2026-01-20"
+    },
+    {
+      "name": "Oracle VirtualBox Guest Additions 7.2.2",
+      "publisher": "Oracle and/or its affiliates",
+      "version": "",
+      "install_location": "C:/Program Files/Oracle/VirtualBox Guest Additions",
+      "install_date": "2025-12-03"
+    },
+    {
+      "name": "Python 3.10.11 Core Interpreter",
+      "publisher": "Python Software Foundation",
+      "version": "3.10.11",
+      "install_location": "C:/Users/alice/AppData/Local/Programs/Python/Python310",
+      "install_date": "2026-02-01"
+    },
+    {
+      "name": "Python 3.10.11 Standard Library",
+      "publisher": "Python Software Foundation",
+      "version": "3.10.11",
+      "install_location": "C:/Users/alice/AppData/Local/Programs/Python/Python310",
+      "install_date": "2026-02-01"
+    },
+    {
+      "name": "Python 3.10.11 Documentation",
+      "publisher": "Python Software Foundation",
+      "version": "3.10.11",
+      "install_location": "C:/Users/alice/AppData/Local/Programs/Python/Python310",
+      "install_date": "2026-02-01"
+    }
+  ]
+}

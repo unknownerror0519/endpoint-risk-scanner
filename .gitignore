@@ -1,0 +1,31 @@
+# Secrets / credentials (never commit)
+**/serviceAccountKey.json
+product/secrets/
+product/secrets/serviceAccountKey.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.python-version
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Backend
+backend/__pycache__/
+backend/.env
+
+# Large datasets (keep out of git; store in HF Dataset repo)
+product/nvd_cves_all.json
+product/nvd_cves_all.json.bak_*
+ml_model/nvd_cves_all.json
+
+# ML training artifacts (very large; not needed at runtime)
+ml_model/data/
+
+# Local build/run outputs
+product/output/

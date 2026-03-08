@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+@keyframes scan-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-scan-pulse {
+  animation: scan-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes score-appear {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-score-appear {
+  animation: score-appear 0.3s ease-out;
+}
+
+@keyframes scan-progress {
+  0% { width: 15%; margin-left: 0; }
+  50% { width: 40%; margin-left: 30%; }
+  100% { width: 15%; margin-left: 85%; }
+}
+.animate-scan-progress {
+  animation: scan-progress 2s ease-in-out infinite;
+}

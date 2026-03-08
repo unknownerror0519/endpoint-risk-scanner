@@ -1,0 +1,43 @@
+# Prevent secrets and local env from entering container images
+backend/.env
+**/serviceAccountKey.json
+product/secrets/
+
+# Local virtualenvs (large)
+.venv/
+ml_model/.venv/
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# ML training artifacts not needed at runtime
+ml_model/data/
+ml_model/epss_scores.csv
+ml_model/nvd_cves_all.json
+
+# Duplicate feeds not needed at runtime (root copies are used)
+product/epss_scores.csv
+product/known_exploited_vulnerabilities.json
+
+# Backup datasets
+product/nvd_cves_all.json.bak_*
+
+# Generated outputs (not required in container image)
+product/output/
+
+# Generic backups (avoid accidental large uploads)
+**/*.bak
+**/*.bak_*
+
+# Large runtime dataset is downloaded at runtime in no-billing deployments
+product/nvd_cves_all.json
+
+# VCS
+.git/
+.gitignore

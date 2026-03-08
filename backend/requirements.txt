@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+google-cloud-firestore
+requests
+python-dateutil
+
+# Runtime deps for product scan pipeline (ML scoring)
+numpy
+pandas
+joblib
+scikit-learn
+xgboost
