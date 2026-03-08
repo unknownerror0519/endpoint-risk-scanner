@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -10,10 +11,31 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from backend.firestore_service import FirestoreService
+from backend.bootstrap import ensure_nvd_dataset_present
+from backend.azure_blob import upload_blob_from_path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 ORCHESTRATOR = ROOT / "product" / "run_endpoint_scan.py"
+
+
+def _get_artifacts_blob_config() -> Optional[dict]:
+    account = os.getenv("SCAN_ARTIFACTS_AZURE_STORAGE_ACCOUNT")
+    if not account:
+        return None
+    return {
+        "account": account,
+        "container": os.getenv("SCAN_ARTIFACTS_AZURE_CONTAINER") or "scan-artifacts",
+        "prefix": (os.getenv("SCAN_ARTIFACTS_PREFIX") or "scans").strip("/"),
+    }
+
+
+def _extract_scan_dir_name(bundle: dict) -> Optional[str]:
+    scan_dir = bundle.get("scan_dir")
+    if not scan_dir:
+        return None
+    parts = str(scan_dir).replace("\\", "/").split("/")
+    return parts[-1] if parts else None
 
 # Track running subprocess handles so they can be cancelled.
 _proc_lock = threading.Lock()
@@ -55,6 +77,10 @@ def run_scan_for_endpoint(
 
     Returns a small summary dict (used for logs).
     """
+
+    # Ensure the NVD dataset is present before invoking the product pipeline.
+    # (Startup bootstrapping is non-blocking in production.)
+    ensure_nvd_dataset_present(blocking=True)
 
     if not ORCHESTRATOR.exists():
         raise FileNotFoundError(f"Orchestrator not found: {ORCHESTRATOR}")
@@ -146,6 +172,33 @@ def run_scan_for_endpoint(
     with bundle_path.open("r", encoding="utf-8") as f:
         bundle = json.load(f)
 
+    artifacts = dict(bundle.get("artifacts") or {})
+
+    # Persist detailed artifacts to durable storage (Container Apps filesystem is ephemeral).
+    blob_cfg = _get_artifacts_blob_config()
+    scan_dir_name = _extract_scan_dir_name(bundle) or "latest"
+    if blob_cfg and artifacts.get("scored"):
+        scored_rel = str(artifacts.get("scored"))
+        scored_path = (ROOT / Path(scored_rel)).resolve()
+        if scored_path.is_file():
+            blob_name = f"{blob_cfg['prefix']}/{endpoint_id}/{scan_dir_name}/product_cve_scored.json"
+            try:
+                upload_blob_from_path(
+                    account_name=blob_cfg["account"],
+                    container_name=blob_cfg["container"],
+                    blob_name=blob_name,
+                    file_path=scored_path,
+                    content_type="application/json",
+                )
+                artifacts["scored_blob"] = {
+                    "account": blob_cfg["account"],
+                    "container": blob_cfg["container"],
+                    "blob": blob_name,
+                }
+            except Exception as e:
+                # Do not fail the scan; the summary still persists to Firestore.
+                artifacts["scored_blob_error"] = f"{type(e).__name__}: {e}"
+
     endpoint_summary = bundle.get("endpoint_summary") or {}
     application_summaries = bundle.get("application_summaries") or []
 
@@ -154,7 +207,7 @@ def run_scan_for_endpoint(
             endpoint_id,
             endpoint_summary=endpoint_summary,
             application_summaries=application_summaries,
-            bundle_artifacts=bundle.get("artifacts"),
+            bundle_artifacts=artifacts,
         )
     except Exception as e:
         # If we can't persist results, the UI will appear to "lose" scans.

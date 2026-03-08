@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
@@ -25,13 +27,38 @@ def _build_client(project_id: Optional[str]) -> firestore.Client:
     2. product/secrets/serviceAccountKey.json (local dev convenience)
     3. ADC (Cloud Run / gcloud auth application-default login)
     """
+    # First, support providing the service account JSON directly via env var.
+    # This is the most reliable approach on container platforms where writing
+    # files may be constrained or startup hooks might not run as expected.
+    sa_json = os.getenv("FIRESTORE_SERVICE_ACCOUNT_JSON")
+    if sa_json:
+        try:
+            parsed = json.loads(sa_json)
+        except json.JSONDecodeError:
+            # Support base64-encoded JSON to avoid quoting issues in secret stores.
+            parsed = json.loads(base64.b64decode(sa_json, validate=True).decode("utf-8"))
+
+        if not isinstance(parsed, dict):
+            raise ValueError("FIRESTORE_SERVICE_ACCOUNT_JSON must be a JSON object")
+
+        info = {k: v for k, v in parsed.items() if isinstance(k, str)}
+        creds = service_account.Credentials.from_service_account_info(info)
+        inferred_project_id = project_id or info.get("project_id") or getattr(creds, "project_id", None)
+        return firestore.Client(project=inferred_project_id, credentials=creds)
+
     sa_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or (
         str(_DEFAULT_SA_KEY) if _DEFAULT_SA_KEY.exists() else None
     )
 
     if sa_path and Path(sa_path).exists():
         creds = service_account.Credentials.from_service_account_file(str(sa_path))
-        return firestore.Client(project=project_id, credentials=creds)
+
+        # If the caller did not supply a project id, infer it from the service account.
+        # This avoids runtime failures when GOOGLE_APPLICATION_CREDENTIALS is set but
+        # FIRESTORE_PROJECT_ID is not.
+        inferred_project_id = project_id or getattr(creds, "project_id", None)
+
+        return firestore.Client(project=inferred_project_id, credentials=creds)
 
     return firestore.Client(project=project_id)
 

@@ -64,10 +64,25 @@ def _read_json(path: str) -> Any:
         return json.load(f)
 
 
+def _json_default(obj: Any) -> Any:
+    # ijson may parse numbers as Decimal for precision. Convert to JSON-safe primitives.
+    try:
+        from decimal import Decimal
+
+        if isinstance(obj, Decimal):
+            # Preserve integers as ints when possible.
+            if obj == obj.to_integral_value():
+                return int(obj)
+            return float(obj)
+    except Exception:
+        pass
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
 def _write_json(path: str, obj: Any) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(obj, f, indent=2, ensure_ascii=False)
+        json.dump(obj, f, indent=2, ensure_ascii=False, default=_json_default)
         f.write("\n")
 
 
@@ -551,24 +566,73 @@ def _iter_nvd_cves(nvd_path: str, limit: Optional[int] = None) -> Iterator[CveRe
     - Older: {"CVE_Items": [...]} (best-effort)
     """
 
-    data = _read_json(nvd_path)
+    def _detect_nvd_mode(path: str) -> Optional[str]:
+        # Cheap shape sniff: avoid reading entire file.
+        try:
+            with open(path, "rb") as f:
+                head = f.read(262144)
+        except Exception:
+            return None
 
-    # Determine item list.
-    items: List[Any] = []
-    if isinstance(data, dict) and isinstance(data.get("vulnerabilities"), list):
-        items = data["vulnerabilities"]
-        mode = "vulnerabilities"
-    elif isinstance(data, dict) and isinstance(data.get("CVE_Items"), list):
-        items = data["CVE_Items"]
-        mode = "CVE_Items"
-    elif isinstance(data, list):
-        items = data
-        mode = "list"
+        stripped = head.lstrip()
+        if stripped.startswith(b"["):
+            return "list"
+
+        head_text = head.decode("utf-8", errors="ignore")
+        if '"vulnerabilities"' in head_text:
+            return "vulnerabilities"
+        if '"CVE_Items"' in head_text:
+            return "CVE_Items"
+        return None
+
+    def _iter_items_streaming(path: str, prefix: str) -> Iterator[Any]:
+        import ijson  # local import so json-only environments still work
+
+        with open(path, "rb") as f:
+            try:
+                yield from ijson.items(f, prefix, use_float=True)
+            except TypeError:
+                # Older ijson versions may not support use_float.
+                yield from ijson.items(f, prefix)
+
+    # Prefer streaming parse for huge datasets to avoid OOM.
+    mode = None
+    try:
+        import ijson  # type: ignore  # noqa: F401
+
+        mode = _detect_nvd_mode(nvd_path)
+    except Exception:
+        mode = None
+
+    items_iter: Iterable[Any]
+    if mode in {"vulnerabilities", "CVE_Items", "list"}:
+        prefix = {
+            "vulnerabilities": "vulnerabilities.item",
+            "CVE_Items": "CVE_Items.item",
+            "list": "item",
+        }[mode]
+        items_iter = _iter_items_streaming(nvd_path, prefix)
     else:
-        raise ValueError(f"Unrecognized NVD dataset shape: {nvd_path}")
+        # Fallback: full load (may require lots of RAM).
+        data = _read_json(nvd_path)
+
+        # Determine item list.
+        items: List[Any] = []
+        if isinstance(data, dict) and isinstance(data.get("vulnerabilities"), list):
+            items = data["vulnerabilities"]
+            mode = "vulnerabilities"
+        elif isinstance(data, dict) and isinstance(data.get("CVE_Items"), list):
+            items = data["CVE_Items"]
+            mode = "CVE_Items"
+        elif isinstance(data, list):
+            items = data
+            mode = "list"
+        else:
+            raise ValueError(f"Unrecognized NVD dataset shape: {nvd_path}")
+        items_iter = items
 
     count = 0
-    for item in items:
+    for item in items_iter:
         if limit is not None and count >= limit:
             break
 

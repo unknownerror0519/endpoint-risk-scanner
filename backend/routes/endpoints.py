@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from backend.firestore_service import firestore_endpoints_from_env, firestore_scans_from_env
 from backend.models import EndpointListItem, EndpointResults
+from backend.azure_blob import download_blob_json
 
 
 router = APIRouter(prefix="/endpoints", tags=["endpoints"])
@@ -26,7 +27,7 @@ def _parse_dt(value: Any) -> Optional[datetime]:
 
 
 def _is_online(last_seen_raw: Any) -> bool:
-    """Return True if the device reported within the last 5 minutes."""
+    """Return True if the device reported within the online threshold window."""
     if not last_seen_raw:
         return False
     try:
@@ -86,7 +87,20 @@ def list_endpoints(limit: int = Query(default=200, ge=1, le=1000)):
 def get_endpoint(endpoint_id: str):
     fs = firestore_endpoints_from_env()
     try:
-        return fs.get_endpoint(endpoint_id)
+        doc: Dict[str, Any] = fs.get_endpoint(endpoint_id)
+
+        # Normalize/compute live connection status.
+        # Agents may report `connection_status.online=true` but never flip it back;
+        # the API should compute online state from the most recent heartbeat.
+        conn = doc.get("connection_status")
+        if not isinstance(conn, dict):
+            conn = {}
+            doc["connection_status"] = conn
+
+        last_seen_val = conn.get("last_seen")
+        conn["online"] = _is_online(last_seen_val)
+
+        return doc
     except KeyError:
         raise HTTPException(status_code=404, detail="Endpoint not found")
 
@@ -131,15 +145,33 @@ def get_cves_for_product(endpoint_id: str, product_name: str):
         doc = {}
 
     artifacts = doc.get("latest_scan_artifacts") or {}
-    scored_path_str = artifacts.get("scored")
-    if not scored_path_str:
-        raise HTTPException(status_code=404, detail="No scan results available")
 
-    scored_path = _ROOT / Path(scored_path_str)
-    if not scored_path.is_file():
-        raise HTTPException(status_code=404, detail="Scan results file not found")
+    scored_blob = artifacts.get("scored_blob") or {}
+    if isinstance(scored_blob, dict) and scored_blob.get("account") and scored_blob.get("container") and scored_blob.get("blob"):
+        try:
+            data = download_blob_json(
+                account_name=str(scored_blob["account"]),
+                container_name=str(scored_blob["container"]),
+                blob_name=str(scored_blob["blob"]),
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    "Failed to load scan results artifact from blob storage. "
+                    f"Error: {type(e).__name__}: {e}"
+                ),
+            )
+    else:
+        scored_path_str = artifacts.get("scored")
+        if not scored_path_str:
+            raise HTTPException(status_code=404, detail="No scan results available")
 
-    data = json.loads(scored_path.read_text(encoding="utf-8"))
+        scored_path = _ROOT / Path(str(scored_path_str))
+        if not scored_path.is_file():
+            raise HTTPException(status_code=404, detail="Scan results file not found")
+
+        data = json.loads(scored_path.read_text(encoding="utf-8"))
 
     for app in data:
         if app.get("display_product") == product_name:

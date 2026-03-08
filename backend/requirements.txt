@@ -4,6 +4,13 @@ google-cloud-firestore
 requests
 python-dateutil
 
+# Azure Blob download (for NVD dataset in Container Apps without SAS URLs)
+azure-identity
+azure-storage-blob
+
+# Stream huge NVD JSON without loading into RAM
+ijson
+
 # Runtime deps for product scan pipeline (ML scoring)
 numpy
 pandas
