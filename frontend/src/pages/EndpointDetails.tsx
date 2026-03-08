@@ -677,7 +677,7 @@ function ScanTab({ results, onScan, endpointId }: { results: EndpointResults | n
         </Card>
         <div className="grid grid-cols-2 gap-3 lg:col-span-3">
           <StatBox label="Vulnerable apps" value={es.application_count_with_cves ?? '—'} />
-          <StatBox label="Total CVEs" value={es.total_cve_count ?? '—'} color="text-gray-900" />
+          <StatBox label="Total CVEs" value={es.total_cve_count ?? '—'} />
           <StatBox label="KEV (Known Exploited)" value={es.total_kev_count ?? '—'} color={Number(es.total_kev_count) > 0 ? 'text-amber-600' : undefined} />
           <StatBox label="Exploit evidence" value={es.total_exploit_evidence_count ?? '—'} color={Number(es.total_exploit_evidence_count) > 0 ? 'text-red-600' : undefined} />
           <StatBox label="Combined risk" value={typeof es.endpoint_combined_risk_0_100 === 'number' ? `${Number(es.endpoint_combined_risk_0_100).toFixed(1)}/100` : '—'} />
